@@ -1,33 +1,34 @@
-package com.example.finalproject.ui.search
+package com.example.finalproject.ui
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.finalproject.api.BookApi
+import com.example.finalproject.api.BookInfo
 import com.example.finalproject.api.Repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class SearchViewModel : ViewModel() {
-
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is search Fragment"
-    }
-    val text: LiveData<String> = _text
-
+class MainViewModel : ViewModel() {
     private val api = BookApi.create()
     private val repository = Repository(api)
 
-    init {
-        netRefresh()
+    private val bookListings = MutableLiveData<List<BookInfo>>().apply {
+        value = listOf()
     }
 
-    fun netRefresh() {
+    init {
+        netBooks()
+    }
+
+    fun netBooks() {
         viewModelScope.launch(context = viewModelScope.coroutineContext + Dispatchers.IO) {
-            val bookInfoList = repository.fetchBooks("quilting")
-            Log.d("XXX", bookInfoList.toString())
+            bookListings.postValue(repository.fetchBooks("quilting"))
         }
+    }
+
+    fun observeBookListings(): LiveData<List<BookInfo>> {
+        return bookListings
     }
 }
