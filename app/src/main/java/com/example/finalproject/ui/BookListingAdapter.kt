@@ -32,6 +32,9 @@ class BookListingAdapter(private val viewModel: MainViewModel)
         val bookListingBinding = holder.bookListingBinding
 
         bookListingBinding.rowBookTitle.text = item.title
+        bookListingBinding.rowBookTitle.setOnClickListener {
+            MainViewModel.openBookPage(it.context, item)
+        }
         bookListingBinding.rowAuthor.text = formatAuthors(item.authors)
         Glide.glideFetch(
             item.imageLinks.smallThumbnail.replace("http", "https"),

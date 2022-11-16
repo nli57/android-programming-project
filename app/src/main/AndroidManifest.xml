@@ -28,6 +28,10 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+        <activity
+            android:name=".ui.BookPage"
+            android:parentActivityName=".MainActivity" >
+        </activity>
     </application>
 
 </manifest>
