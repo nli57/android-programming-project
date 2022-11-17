@@ -16,17 +16,15 @@ class MainViewModel : ViewModel() {
     private val api = BookApi.create()
     private val repository = Repository(api)
 
-    private val bookListings = MutableLiveData<List<BookInfo>>().apply {
-        value = listOf()
-    }
+    private val bookListings = MutableLiveData<List<BookInfo>>()
 
     init {
-        netBooks()
+        netBooks("quilting")
     }
 
-    fun netBooks() {
+    fun netBooks(searchTerm: String) {
         viewModelScope.launch(context = viewModelScope.coroutineContext + Dispatchers.IO) {
-            bookListings.postValue(repository.fetchBooks("quilting"))
+            bookListings.postValue(repository.fetchBooks(searchTerm))
         }
     }
 
