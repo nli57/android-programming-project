@@ -4,35 +4,52 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
+import com.example.finalproject.AuthInit
 import com.example.finalproject.databinding.FragmentProfileBinding
+import com.example.finalproject.ui.MainViewModel
+import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 
 class ProfileFragment : Fragment() {
-
+    private val viewModel: MainViewModel by activityViewModels()
     private var _binding: FragmentProfileBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private val signInLauncher =
+        registerForActivityResult(FirebaseAuthUIActivityResultContract()) {
+            viewModel.updateUser()
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val profileViewModel =
-            ViewModelProvider(this).get(ProfileViewModel::class.java)
-
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
-        val root: View = binding.root
+        return binding.root
+    }
 
-        val textView: TextView = binding.textProfile
-        profileViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.loginBut.setOnClickListener {
+            AuthInit(viewModel, signInLauncher)
         }
-        return root
+        binding.logoutBut.setOnClickListener {
+            viewModel.signOut()
+        }
+
+        viewModel.observeDisplayName().observe(viewLifecycleOwner) {
+            if (it == "Uninitialized") {
+                binding.userName.text = ""
+            } else {
+                binding.userName.text = "Welcome, $it"
+            }
+        }
     }
 
     override fun onDestroyView() {
