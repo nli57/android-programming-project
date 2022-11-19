@@ -68,11 +68,28 @@ class MainViewModel : ViewModel() {
             val launchBookPageIntent = Intent(context, BookPage::class.java)
             launchBookPageIntent.apply {
                 putExtra(BookPage.titleKey, bookInfo.title)
+                putExtra(BookPage.subtitleKey, bookInfo.subtitle)
                 putExtra(BookPage.authorsKey, bookInfo.authors.toTypedArray())
                 putExtra(BookPage.descriptionKey, bookInfo.description)
                 putExtra(BookPage.imageLinkKey, bookInfo.imageLinks.thumbnail)
+                putExtra(BookPage.isbn10Key, findISBN(bookInfo, "ISBN_10"))
+                putExtra(BookPage.isbn13Key, findISBN(bookInfo, "ISBN_13"))
+                putExtra(BookPage.publisherKey, bookInfo.publisher)
+                putExtra(BookPage.publishedDateKey, bookInfo.publishedDate)
+                putExtra(BookPage.pageCountKey, bookInfo.pageCount)
+                putExtra(BookPage.categoriesKey, bookInfo.categories.toTypedArray())
             }
             context.startActivity(launchBookPageIntent)
+        }
+
+        private fun findISBN(bookInfo: BookInfo, type: String): String {
+            val industryIdentifiers = bookInfo.industryIdentifiers
+            for (isbnNum in industryIdentifiers) {
+                if (isbnNum.type == type) {
+                    return isbnNum.identifier
+                }
+            }
+            return ""
         }
     }
 }

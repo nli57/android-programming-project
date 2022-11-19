@@ -15,6 +15,8 @@ data class BookInfo(
     val publishedDate: String,
     @SerializedName("description")
     val description: String,
+    @SerializedName("industryIdentifiers")
+    val industryIdentifiers: List<ISBNNumber>,
     @SerializedName("pageCount")
     val pageCount: Int,
     @SerializedName("categories")

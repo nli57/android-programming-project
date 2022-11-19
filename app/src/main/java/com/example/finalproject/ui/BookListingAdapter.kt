@@ -35,6 +35,7 @@ class BookListingAdapter(private val viewModel: MainViewModel)
         bookListingBinding.rowBookTitle.setOnClickListener {
             MainViewModel.openBookPage(it.context, item)
         }
+        bookListingBinding.rowBookSubtitle.text = item.subtitle
         bookListingBinding.rowAuthor.text = formatAuthors(item.authors)
         if (item.imageLinks != null && item.imageLinks.smallThumbnail != null) {
             Glide.glideFetch(
@@ -48,13 +49,13 @@ class BookListingAdapter(private val viewModel: MainViewModel)
         return if (authors == null || authors.isEmpty()) {
             ""
         } else if (authors.size == 1) {
-            "Author: ${authors[0]}"
+            "By ${authors[0]}"
         } else {    // >1 author
             var authorsStr = authors[0]
             for (i in 1 until authors.size) {
                 authorsStr += ", ${authors[i]}"
             }
-            "Authors: $authorsStr"
+            "By $authorsStr"
         }
     }
 
