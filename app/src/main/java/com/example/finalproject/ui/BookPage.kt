@@ -5,6 +5,7 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.example.finalproject.databinding.ActivityBookPageBinding
 import com.example.finalproject.glide.Glide
+import com.google.android.material.snackbar.Snackbar
 
 class BookPage: AppCompatActivity() {
     companion object {
@@ -57,6 +58,28 @@ class BookPage: AppCompatActivity() {
         binding.bookPagePageCount.text = "Page Count: $pageCount"
         if (categories != null) {
             binding.bookPageCategories.text = formatCategories(categories)
+        }
+
+        // Book review
+        binding.bookReviewBut.setOnClickListener {
+            val bookReview = binding.bookReviewET.text.toString()
+            val rating = binding.bookReviewRating.rating
+
+            if (bookReview.isEmpty()) {
+                Snackbar.make(
+                    binding.bookReviewET,
+                    "Please include text in your book review",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            } else if (rating == 0f) {
+                Snackbar.make(
+                    binding.bookReviewRating,
+                    "Please include a rating in your book review (>0 stars)",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            } else {
+
+            }
         }
     }
 

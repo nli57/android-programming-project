@@ -141,6 +141,32 @@
                 android:textStyle="bold"
                 android:text="Book Reviews"
                 />
+
+            <EditText
+                android:id="@+id/bookReviewET"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:hint="Write a review..."
+                />
+
+            <RatingBar
+                android:id="@+id/bookReviewRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:layout_gravity="center_horizontal"
+                android:scaleX="0.75"
+                android:scaleY="0.75"
+                />
+
+            <Button
+                android:id="@+id/bookReviewBut"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="8dp"
+                android:text="Submit Book Review"
+                />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
