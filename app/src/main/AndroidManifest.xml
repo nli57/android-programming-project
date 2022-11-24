@@ -30,7 +30,8 @@
         </activity>
         <activity
             android:name=".ui.BookPage"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".MainActivity"
+            android:label="About This Book" >
         </activity>
     </application>
 

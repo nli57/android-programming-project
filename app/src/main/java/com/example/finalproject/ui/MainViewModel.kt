@@ -20,10 +20,7 @@ class MainViewModel : ViewModel() {
     private var displayName = MutableLiveData("Uninitialized")
     private var email = MutableLiveData("Uninitialized")
     private var uid = MutableLiveData("Uninitialized")
-
-    init {
-        netBooks("quilting")
-    }
+    private var isLoggedIn = MutableLiveData(false)
 
     fun netBooks(searchTerm: String) {
         viewModelScope.launch(context = viewModelScope.coroutineContext + Dispatchers.IO) {
@@ -39,6 +36,14 @@ class MainViewModel : ViewModel() {
         return displayName
     }
 
+    fun observeLoginStatus(): LiveData<Boolean> {
+        return isLoggedIn
+    }
+
+    fun getLoginStatus(): Boolean {
+        return isLoggedIn.value!!
+    }
+
     fun updateUser() {
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
@@ -49,6 +54,7 @@ class MainViewModel : ViewModel() {
             }
             email.postValue(profile.email)
             uid.postValue(profile.uid)
+            isLoggedIn.postValue(true)
         }
     }
 
@@ -61,6 +67,7 @@ class MainViewModel : ViewModel() {
         displayName.postValue("Uninitialized")
         email.postValue("Uninitialized")
         uid.postValue("Uninitialized")
+        isLoggedIn.postValue(false)
     }
 
     companion object {

@@ -6,43 +6,13 @@
     android:orientation="vertical"
     tools:context=".ui.profile.ProfileFragment">
 
-    <LinearLayout
+    <Button
+        android:id="@+id/loginLogoutBut"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:orientation="horizontal"
-        android:gravity="center" >
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1"
-            />
-        <Button
-            android:id="@+id/loginBut"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="Login"
-            />
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1"
-            />
-        <Button
-            android:id="@+id/logoutBut"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="Logout"
-            />
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1"
-            />
-    </LinearLayout>
+        android:layout_gravity="center_horizontal"
+        />
 
     <TextView
         android:id="@+id/userName"

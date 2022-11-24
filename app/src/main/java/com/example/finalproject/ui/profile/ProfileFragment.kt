@@ -36,11 +36,20 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.loginBut.setOnClickListener {
-            AuthInit(viewModel, signInLauncher)
+        binding.loginLogoutBut.setOnClickListener {
+            if (viewModel.getLoginStatus()) {
+                viewModel.signOut()
+            } else {
+                AuthInit(viewModel, signInLauncher)
+            }
         }
-        binding.logoutBut.setOnClickListener {
-            viewModel.signOut()
+
+        viewModel.observeLoginStatus().observe(viewLifecycleOwner) {
+            if (it) {
+                binding.loginLogoutBut.text = "Logout"
+            } else {
+                binding.loginLogoutBut.text = "Login"
+            }
         }
 
         viewModel.observeDisplayName().observe(viewLifecycleOwner) {

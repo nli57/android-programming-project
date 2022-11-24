@@ -9,7 +9,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface BookApi {
-    @GET("/books/v1/volumes")
+    @GET("/books/v1/volumes?maxResults=40")
     suspend fun getBooks(@Query("q") searchTerm: String) : BookResponse
 
     data class BookResponse(val items: List<BookItem>)
