@@ -10,7 +10,10 @@ import retrofit2.http.Query
 
 interface BookApi {
     @GET("/books/v1/volumes?maxResults=40")
-    suspend fun getBooks(@Query("q") searchTerm: String) : BookResponse
+    suspend fun getBooksBySearchTerm(@Query("q") searchTerm: String) : BookResponse
+
+    @GET("/books/v1/volumes")
+    suspend fun getBooksByISBN(@Query("q") isbn: String) : BookResponse
 
     data class BookResponse(val items: List<BookItem>)
 

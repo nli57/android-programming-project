@@ -2,7 +2,10 @@ package com.example.finalproject.ui
 
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.inputmethod.InputMethodManager
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.finalproject.databinding.ActivityBookPageBinding
 import com.example.finalproject.glide.Glide
 import com.google.android.material.snackbar.Snackbar
@@ -21,6 +24,8 @@ class BookPage: AppCompatActivity() {
         const val pageCountKey = "pageCount"
         const val categoriesKey = "categories"
     }
+
+    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,25 +67,51 @@ class BookPage: AppCompatActivity() {
 
         // Book review
         binding.bookReviewBut.setOnClickListener {
-            val bookReview = binding.bookReviewET.text.toString()
-            val rating = binding.bookReviewRating.rating
+            val bookReviewText = binding.bookReviewET.text.toString()
+            val bookReviewRating = binding.userBookReviewRating.rating
 
-            if (bookReview.isEmpty()) {
+            if (!viewModel.getLoginStatus()) {
+                Snackbar.make(
+                    binding.bookReviewET,
+                    "You must be logged in to submit a book review",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            } else if (bookReviewText.isEmpty()) {
                 Snackbar.make(
                     binding.bookReviewET,
                     "Please include text in your book review",
                     Snackbar.LENGTH_LONG
                 ).show()
-            } else if (rating == 0f) {
+            } else if (bookReviewRating == 0f) {
                 Snackbar.make(
-                    binding.bookReviewRating,
+                    binding.userBookReviewRating,
                     "Please include a rating in your book review (>0 stars)",
                     Snackbar.LENGTH_LONG
                 ).show()
             } else {
-
+                hideKeyboard()
+                viewModel.createBookReview(bookReviewText, bookReviewRating, isbn10!!)
+                binding.bookReviewET.text.clear()
+                binding.userBookReviewRating.rating = 0f
+                Snackbar.make(
+                    binding.userBookReviewRating,
+                    "Book review submitted",
+                    Snackbar.LENGTH_LONG
+                ).show()
             }
         }
+
+        val adapter = BookReviewAdapter(viewModel)
+        binding.bookReviewRecyclerView.adapter = adapter
+        val manager = LinearLayoutManager(this)
+        binding.bookReviewRecyclerView.layoutManager = manager
+
+        viewModel.observeBookReviews().observe(this) {
+            adapter.submitList(it)
+        }
+
+        // Initial fetch of book reviews
+        viewModel.fetchInitialBookReviews(isbn10!!)
     }
 
     private fun formatAuthors(authors: Array<String>) : String {
@@ -116,5 +147,10 @@ class BookPage: AppCompatActivity() {
             finish()
             true
         } else super.onOptionsItemSelected(item)
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(window.decorView.rootView.windowToken, 0)
     }
 }

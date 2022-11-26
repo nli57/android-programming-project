@@ -47,16 +47,10 @@ class ProfileFragment : Fragment() {
         viewModel.observeLoginStatus().observe(viewLifecycleOwner) {
             if (it) {
                 binding.loginLogoutBut.text = "Logout"
+                binding.userName.text = "Welcome, ${viewModel.getDisplayName()}"
             } else {
                 binding.loginLogoutBut.text = "Login"
-            }
-        }
-
-        viewModel.observeDisplayName().observe(viewLifecycleOwner) {
-            if (it == "Uninitialized") {
                 binding.userName.text = ""
-            } else {
-                binding.userName.text = "Welcome, $it"
             }
         }
     }

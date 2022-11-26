@@ -3,12 +3,16 @@ package com.example.finalproject.ui
 import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.finalproject.FirestoreAuthLiveData
+import com.example.finalproject.ViewModelDBHelper
 import com.example.finalproject.api.BookApi
 import com.example.finalproject.api.BookInfo
 import com.example.finalproject.api.Repository
+import com.example.finalproject.model.BookReview
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,12 +20,18 @@ import kotlinx.coroutines.launch
 class MainViewModel : ViewModel() {
     private val api = BookApi.create()
     private val repository = Repository(api)
-    private val bookListings = MutableLiveData<List<BookInfo>>()
-    private var displayName = MutableLiveData("Uninitialized")
-    private var email = MutableLiveData("Uninitialized")
-    private var uid = MutableLiveData("Uninitialized")
-    private var isLoggedIn = MutableLiveData(false)
+    private val dbHelp = ViewModelDBHelper()
+    private var firebaseAuthLiveData = FirestoreAuthLiveData()
 
+    private val bookListings = MutableLiveData<List<BookInfo>>()
+    private var bookReviewList = MutableLiveData<List<BookReview>>()
+    private var loginStatus = MediatorLiveData<Boolean>().apply {
+        addSource(firebaseAuthLiveData) {
+            value = (it != null)
+        }
+    }
+
+    // BOOK LISTINGS
     fun netBooks(searchTerm: String) {
         viewModelScope.launch(context = viewModelScope.coroutineContext + Dispatchers.IO) {
             bookListings.postValue(repository.fetchBooks(searchTerm))
@@ -32,42 +42,61 @@ class MainViewModel : ViewModel() {
         return bookListings
     }
 
-    fun observeDisplayName(): LiveData<String> {
-        return displayName
+    // BOOK REVIEWS
+    fun createBookReview(bookReviewText: String, bookReviewRating: Float, bookReviewISBN: String) {
+        val currUser = firebaseAuthLiveData.getCurrentUser()
+        if (currUser != null) {
+            val bookReview = BookReview(
+                text = bookReviewText,
+                rating = bookReviewRating,
+                isbn = bookReviewISBN,
+                email = currUser.email!!
+            )
+            dbHelp.createBookReview(bookReview, bookReviewList)
+        }
     }
 
+    fun observeBookReviews(): LiveData<List<BookReview>> {
+        return bookReviewList
+    }
+
+    fun getBookReview(position: Int) : BookReview {
+        val bookReview = bookReviewList.value?.get(position)
+        return bookReview!!
+    }
+
+    fun fetchInitialBookReviews(isbn: String) {
+        dbHelp.fetchInitialBookReviews(bookReviewList, isbn)
+    }
+
+    // AUTHENTICATION
     fun observeLoginStatus(): LiveData<Boolean> {
-        return isLoggedIn
+        return loginStatus
     }
 
     fun getLoginStatus(): Boolean {
-        return isLoggedIn.value!!
+        return firebaseAuthLiveData.getCurrentUser() != null
+    }
+
+    fun getDisplayName(): String {
+        val currUser = firebaseAuthLiveData.getCurrentUser()
+        return if (currUser != null) {
+            if (currUser.displayName != null) {
+                currUser.displayName!!
+            } else {
+                currUser.email!!
+            }
+        } else {
+            "Anonymous User"
+        }
     }
 
     fun updateUser() {
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user != null) {
-            val profile = user.providerData[0]
-            val name = profile.displayName
-            if (name != null) {
-                displayName.postValue(name)
-            }
-            email.postValue(profile.email)
-            uid.postValue(profile.uid)
-            isLoggedIn.postValue(true)
-        }
+        firebaseAuthLiveData.updateUser()
     }
 
     fun signOut() {
         FirebaseAuth.getInstance().signOut()
-        userLogout()
-    }
-
-    private fun userLogout() {
-        displayName.postValue("Uninitialized")
-        email.postValue("Uninitialized")
-        uid.postValue("Uninitialized")
-        isLoggedIn.postValue(false)
     }
 
     companion object {

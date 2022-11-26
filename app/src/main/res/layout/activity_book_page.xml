@@ -151,7 +151,7 @@
                 />
 
             <RatingBar
-                android:id="@+id/bookReviewRating"
+                android:id="@+id/userBookReviewRating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="8dp"
@@ -166,6 +166,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="8dp"
                 android:text="Submit Book Review"
+                />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/bookReviewRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 />
         </LinearLayout>
     </ScrollView>
