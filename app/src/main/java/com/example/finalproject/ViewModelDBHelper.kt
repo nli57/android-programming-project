@@ -18,7 +18,7 @@ class ViewModelDBHelper {
 
     private fun dbFetchBookReviews(
         bookReviewList: MutableLiveData<List<BookReview>>,
-        isbn: String,
+        isbn: String
     ) {
         db.collection(collectionRoot)
             .orderBy("timeStamp", Query.Direction.DESCENDING)
@@ -36,13 +36,44 @@ class ViewModelDBHelper {
             }
     }
 
-    fun fetchInitialBookReviews(bookReviewList: MutableLiveData<List<BookReview>>, isbn: String) {
+    private fun dbFetchUserBookReviews(
+        userBookReviewList: MutableLiveData<List<BookReview>>,
+        email: String
+    ) {
+        db.collection(collectionRoot)
+            .orderBy("timeStamp", Query.Direction.DESCENDING)
+            .whereEqualTo("email", email)
+            .limit(100)
+            .get()
+            .addOnSuccessListener { result ->
+                Log.d(javaClass.simpleName, "allBookReviews fetch ${result!!.documents.size}")
+                userBookReviewList.postValue(result.documents.mapNotNull {
+                    it.toObject(BookReview::class.java)
+                })
+            }
+            .addOnFailureListener {
+                Log.d(javaClass.simpleName, "allBookReviews fetch FAILED ", it)
+            }
+    }
+
+    fun fetchInitialBookReviewsByISBN(
+        bookReviewList: MutableLiveData<List<BookReview>>,
+        isbn: String
+    ) {
         dbFetchBookReviews(bookReviewList, isbn)
+    }
+
+    fun fetchInitialBookReviewsByEmail(
+        userBookReviewList: MutableLiveData<List<BookReview>>,
+        email: String
+    ) {
+        dbFetchUserBookReviews(userBookReviewList, email)
     }
 
     fun createBookReview(
         bookReview: BookReview,
-        bookReviewList: MutableLiveData<List<BookReview>>
+        bookReviewList: MutableLiveData<List<BookReview>>,
+        userBookReviewList: MutableLiveData<List<BookReview>>
     ) {
         db.collection(collectionRoot)
             .add(bookReview)
@@ -52,6 +83,7 @@ class ViewModelDBHelper {
                     "BookReview create \"${ellipsizeString(bookReview.text)}\" id: ${bookReview.firestoreID}"
                 )
                 dbFetchBookReviews(bookReviewList, bookReview.isbn)
+                dbFetchUserBookReviews(userBookReviewList, bookReview.email)
             }
             .addOnFailureListener { e ->
                 Log.d(javaClass.simpleName, "BookReview create FAILED \"${ellipsizeString(bookReview.text)}\"")

@@ -11,7 +11,7 @@ import com.example.finalproject.databinding.BookReviewRowBinding
 import com.example.finalproject.model.BookReview
 import java.util.*
 
-class BookReviewAdapter(private val viewModel: MainViewModel)
+class BookReviewAdapter(private val viewModel: MainViewModel, private val bookReviewType: String)
     : ListAdapter<BookReview, BookReviewAdapter.VH>(Diff()) {
     class Diff : DiffUtil.ItemCallback<BookReview>() {
         override fun areItemsTheSame(oldItem: BookReview, newItem: BookReview): Boolean {
@@ -22,7 +22,6 @@ class BookReviewAdapter(private val viewModel: MainViewModel)
             return oldItem.firestoreID == newItem.firestoreID
                     && oldItem.text == newItem.text
                     && oldItem.rating == newItem.rating
-                    && oldItem.isbn == newItem.isbn
                     && oldItem.email == newItem.email
         }
     }
@@ -30,11 +29,32 @@ class BookReviewAdapter(private val viewModel: MainViewModel)
     private val dateFormat: DateFormat =
         SimpleDateFormat("MM/dd/yyyy hh:mm:ss", Locale.US)
 
+    private fun formatAuthors(authors: List<String>) : String {
+        return if (authors == null || authors.isEmpty()) {
+            ""
+        } else if (authors.size == 1) {
+            "By ${authors[0]}"
+        } else {    // >1 author
+            var authorsStr = authors[0]
+            for (i in 1 until authors.size) {
+                authorsStr += ", ${authors[i]}"
+            }
+            "By $authorsStr"
+        }
+    }
+
     inner class VH(private val bookReviewRowBinding: BookReviewRowBinding) :
         RecyclerView.ViewHolder(bookReviewRowBinding.root) {
 
         fun bind(holder: VH, position: Int) {
-            val bookReview = viewModel.getBookReview(position)
+            val bookReview = if (bookReviewType == MainViewModel.bookReviewKey) {
+                viewModel.getBookReview(position)
+            } else {    // bookReviewType == MainViewModel.userBookReviewKey
+                viewModel.getUserBookReview(position)
+            }
+
+            holder.bookReviewRowBinding.bookReviewBookTitle.text = bookReview.title
+            holder.bookReviewRowBinding.bookReviewAuthor.text = formatAuthors(bookReview.authors)
             holder.bookReviewRowBinding.bookReviewRating.rating = bookReview.rating
             holder.bookReviewRowBinding.bookReviewUserEmail.text = bookReview.email
             bookReview.timeStamp?.let {

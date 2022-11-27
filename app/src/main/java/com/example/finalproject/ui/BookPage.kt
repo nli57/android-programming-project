@@ -90,7 +90,13 @@ class BookPage: AppCompatActivity() {
                 ).show()
             } else {
                 hideKeyboard()
-                viewModel.createBookReview(bookReviewText, bookReviewRating, isbn10!!)
+                viewModel.createBookReview(
+                    bookReviewText,
+                    bookReviewRating,
+                    title!!,
+                    authors!!.toList(),
+                    isbn10!!
+                )
                 binding.bookReviewET.text.clear()
                 binding.userBookReviewRating.rating = 0f
                 Snackbar.make(
@@ -101,7 +107,7 @@ class BookPage: AppCompatActivity() {
             }
         }
 
-        val adapter = BookReviewAdapter(viewModel)
+        val adapter = BookReviewAdapter(viewModel, MainViewModel.bookReviewKey)
         binding.bookReviewRecyclerView.adapter = adapter
         val manager = LinearLayoutManager(this)
         binding.bookReviewRecyclerView.layoutManager = manager
@@ -111,7 +117,7 @@ class BookPage: AppCompatActivity() {
         }
 
         // Initial fetch of book reviews
-        viewModel.fetchInitialBookReviews(isbn10!!)
+        viewModel.fetchInitialBookReviewsByISBN(isbn10!!)
     }
 
     private fun formatAuthors(authors: Array<String>) : String {

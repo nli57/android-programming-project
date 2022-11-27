@@ -6,9 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.commit
 import com.example.finalproject.AuthInit
+import com.example.finalproject.R
 import com.example.finalproject.databinding.FragmentProfileBinding
 import com.example.finalproject.ui.MainViewModel
+import com.example.finalproject.ui.login.LoginFragment
+import com.example.finalproject.ui.login.LogoutFragment
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 
 class ProfileFragment : Fragment() {
@@ -47,10 +51,14 @@ class ProfileFragment : Fragment() {
         viewModel.observeLoginStatus().observe(viewLifecycleOwner) {
             if (it) {
                 binding.loginLogoutBut.text = "Logout"
-                binding.userName.text = "Welcome, ${viewModel.getDisplayName()}"
+                parentFragmentManager.commit {
+                    replace(R.id.loginContainer, LoginFragment.newInstance())
+                }
             } else {
                 binding.loginLogoutBut.text = "Login"
-                binding.userName.text = ""
+                parentFragmentManager.commit {
+                    replace(R.id.loginContainer, LogoutFragment.newInstance())
+                }
             }
         }
     }

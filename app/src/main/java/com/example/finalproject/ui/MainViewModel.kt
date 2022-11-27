@@ -25,6 +25,7 @@ class MainViewModel : ViewModel() {
 
     private val bookListings = MutableLiveData<List<BookInfo>>()
     private var bookReviewList = MutableLiveData<List<BookReview>>()
+    private var userBookReviewList = MutableLiveData<List<BookReview>>()
     private var loginStatus = MediatorLiveData<Boolean>().apply {
         addSource(firebaseAuthLiveData) {
             value = (it != null)
@@ -43,16 +44,24 @@ class MainViewModel : ViewModel() {
     }
 
     // BOOK REVIEWS
-    fun createBookReview(bookReviewText: String, bookReviewRating: Float, bookReviewISBN: String) {
+    fun createBookReview(
+        bookReviewText: String,
+        bookReviewRating: Float,
+        bookReviewTitle: String,
+        bookReviewAuthors: List<String>,
+        bookReviewISBN: String
+    ) {
         val currUser = firebaseAuthLiveData.getCurrentUser()
         if (currUser != null) {
             val bookReview = BookReview(
                 text = bookReviewText,
                 rating = bookReviewRating,
-                isbn = bookReviewISBN,
-                email = currUser.email!!
+                email = currUser.email!!,
+                title = bookReviewTitle,
+                authors = bookReviewAuthors,
+                isbn = bookReviewISBN
             )
-            dbHelp.createBookReview(bookReview, bookReviewList)
+            dbHelp.createBookReview(bookReview, bookReviewList, userBookReviewList)
         }
     }
 
@@ -60,13 +69,26 @@ class MainViewModel : ViewModel() {
         return bookReviewList
     }
 
+    fun observeUserBookReviews(): LiveData<List<BookReview>> {
+        return userBookReviewList
+    }
+
     fun getBookReview(position: Int) : BookReview {
         val bookReview = bookReviewList.value?.get(position)
         return bookReview!!
     }
 
-    fun fetchInitialBookReviews(isbn: String) {
-        dbHelp.fetchInitialBookReviews(bookReviewList, isbn)
+    fun getUserBookReview(position: Int) : BookReview {
+        val userBookReview = userBookReviewList.value?.get(position)
+        return userBookReview!!
+    }
+
+    fun fetchInitialBookReviewsByISBN(isbn: String) {
+        dbHelp.fetchInitialBookReviewsByISBN(bookReviewList, isbn)
+    }
+
+    fun fetchInitialBookReviewsByEmail(email: String) {
+        dbHelp.fetchInitialBookReviewsByEmail(userBookReviewList, email)
     }
 
     // AUTHENTICATION
@@ -91,6 +113,15 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun getEmail(): String {
+        val currUser = firebaseAuthLiveData.getCurrentUser()
+        return if (currUser != null) {
+            currUser.email!!
+        } else {
+            "Anonymous User"
+        }
+    }
+
     fun updateUser() {
         firebaseAuthLiveData.updateUser()
     }
@@ -99,7 +130,11 @@ class MainViewModel : ViewModel() {
         FirebaseAuth.getInstance().signOut()
     }
 
+    // MISC
     companion object {
+        val bookReviewKey = "bookReview"
+        val userBookReviewKey = "userBookReview"
+
         fun openBookPage(context: Context, bookInfo: BookInfo) {
             val launchBookPageIntent = Intent(context, BookPage::class.java)
             launchBookPageIntent.apply {
