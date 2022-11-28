@@ -18,11 +18,11 @@ class ViewModelDBHelper {
 
     private fun dbFetchBookReviews(
         bookReviewList: MutableLiveData<List<BookReview>>,
-        isbn: String
+        volumeID: String
     ) {
         db.collection(collectionRoot)
             .orderBy("timeStamp", Query.Direction.DESCENDING)
-            .whereEqualTo("isbn", isbn)
+            .whereEqualTo("volumeID", volumeID)
             .limit(100)
             .get()
             .addOnSuccessListener { result ->
@@ -56,11 +56,11 @@ class ViewModelDBHelper {
             }
     }
 
-    fun fetchInitialBookReviewsByISBN(
+    fun fetchInitialBookReviewsByVolumeID(
         bookReviewList: MutableLiveData<List<BookReview>>,
-        isbn: String
+        volumeID: String
     ) {
-        dbFetchBookReviews(bookReviewList, isbn)
+        dbFetchBookReviews(bookReviewList, volumeID)
     }
 
     fun fetchInitialBookReviewsByEmail(
@@ -82,7 +82,7 @@ class ViewModelDBHelper {
                     javaClass.simpleName,
                     "BookReview create \"${ellipsizeString(bookReview.text)}\" id: ${bookReview.firestoreID}"
                 )
-                dbFetchBookReviews(bookReviewList, bookReview.isbn)
+                dbFetchBookReviews(bookReviewList, bookReview.volumeID)
                 dbFetchUserBookReviews(userBookReviewList, bookReview.email)
             }
             .addOnFailureListener { e ->

@@ -3,6 +3,7 @@ package com.example.finalproject.api
 import com.google.gson.annotations.SerializedName
 
 data class BookInfo(
+    var volumeID: String,
     @SerializedName("title")
     val title: String,
     @SerializedName("subtitle")

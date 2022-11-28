@@ -35,7 +35,7 @@ class MainViewModel : ViewModel() {
     // BOOK LISTINGS
     fun netBooks(searchTerm: String) {
         viewModelScope.launch(context = viewModelScope.coroutineContext + Dispatchers.IO) {
-            bookListings.postValue(repository.fetchBooks(searchTerm))
+            bookListings.postValue(repository.fetchBooksBySearchTerm(searchTerm))
         }
     }
 
@@ -43,13 +43,23 @@ class MainViewModel : ViewModel() {
         return bookListings
     }
 
+    // BOOK PAGE
+    fun openBookPageByVolumeID(volumeID: String, context: Context) {
+        viewModelScope.launch(context = viewModelScope.coroutineContext + Dispatchers.IO) {
+            val bookInfo = repository.fetchBookByVolumeID(volumeID)
+            if (bookInfo != null) {
+                openBookPage(context, bookInfo)
+            }
+        }
+    }
+
     // BOOK REVIEWS
     fun createBookReview(
         bookReviewText: String,
         bookReviewRating: Float,
+        bookReviewVolumeID: String,
         bookReviewTitle: String,
         bookReviewAuthors: List<String>,
-        bookReviewISBN: String
     ) {
         val currUser = firebaseAuthLiveData.getCurrentUser()
         if (currUser != null) {
@@ -57,9 +67,9 @@ class MainViewModel : ViewModel() {
                 text = bookReviewText,
                 rating = bookReviewRating,
                 email = currUser.email!!,
+                volumeID = bookReviewVolumeID,
                 title = bookReviewTitle,
                 authors = bookReviewAuthors,
-                isbn = bookReviewISBN
             )
             dbHelp.createBookReview(bookReview, bookReviewList, userBookReviewList)
         }
@@ -83,8 +93,8 @@ class MainViewModel : ViewModel() {
         return userBookReview!!
     }
 
-    fun fetchInitialBookReviewsByISBN(isbn: String) {
-        dbHelp.fetchInitialBookReviewsByISBN(bookReviewList, isbn)
+    fun fetchInitialBookReviewsByVolumeID(volumeID: String) {
+        dbHelp.fetchInitialBookReviewsByVolumeID(bookReviewList, volumeID)
     }
 
     fun fetchInitialBookReviewsByEmail(email: String) {
@@ -138,6 +148,7 @@ class MainViewModel : ViewModel() {
         fun openBookPage(context: Context, bookInfo: BookInfo) {
             val launchBookPageIntent = Intent(context, BookPage::class.java)
             launchBookPageIntent.apply {
+                putExtra(BookPage.volumeIDKey, bookInfo.volumeID)
                 putExtra(BookPage.titleKey, bookInfo.title)
                 putExtra(BookPage.subtitleKey, bookInfo.subtitle)
                 putExtra(BookPage.authorsKey, bookInfo.authors.toTypedArray())

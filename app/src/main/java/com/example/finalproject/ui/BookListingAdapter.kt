@@ -61,11 +61,12 @@ class BookListingAdapter(private val viewModel: MainViewModel)
 
     class BookDiff : DiffUtil.ItemCallback<BookInfo>() {
         override fun areItemsTheSame(oldItem: BookInfo, newItem: BookInfo): Boolean {
-            return oldItem.title == newItem.title
+            return oldItem.volumeID == newItem.volumeID
         }
 
         override fun areContentsTheSame(oldItem: BookInfo, newItem: BookInfo): Boolean {
-            return oldItem.title == newItem.title &&
+            return oldItem.volumeID == newItem.volumeID &&
+                    oldItem.title == newItem.title &&
                     oldItem.authors == newItem.authors &&
                     oldItem.imageLinks == newItem.imageLinks
         }

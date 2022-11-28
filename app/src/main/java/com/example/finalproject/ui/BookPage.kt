@@ -12,6 +12,7 @@ import com.google.android.material.snackbar.Snackbar
 
 class BookPage: AppCompatActivity() {
     companion object {
+        const val volumeIDKey = "volumeID"
         const val titleKey = "title"
         const val subtitleKey = "subtitle"
         const val authorsKey = "authors"
@@ -32,6 +33,7 @@ class BookPage: AppCompatActivity() {
         val binding = ActivityBookPageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val volumeID = intent.extras?.getString(volumeIDKey)
         val title = intent.extras?.getString(titleKey)
         val subtitle = intent.extras?.getString(subtitleKey)
         val authors = intent.extras?.getStringArray(authorsKey)
@@ -93,9 +95,9 @@ class BookPage: AppCompatActivity() {
                 viewModel.createBookReview(
                     bookReviewText,
                     bookReviewRating,
+                    volumeID!!,
                     title!!,
                     authors!!.toList(),
-                    isbn10!!
                 )
                 binding.bookReviewET.text.clear()
                 binding.userBookReviewRating.rating = 0f
@@ -117,7 +119,7 @@ class BookPage: AppCompatActivity() {
         }
 
         // Initial fetch of book reviews
-        viewModel.fetchInitialBookReviewsByISBN(isbn10!!)
+        viewModel.fetchInitialBookReviewsByVolumeID(volumeID!!)
     }
 
     private fun formatAuthors(authors: Array<String>) : String {

@@ -23,6 +23,7 @@ class BookReviewAdapter(private val viewModel: MainViewModel, private val bookRe
                     && oldItem.text == newItem.text
                     && oldItem.rating == newItem.rating
                     && oldItem.email == newItem.email
+                    && oldItem.volumeID == newItem.volumeID
         }
     }
 
@@ -56,11 +57,19 @@ class BookReviewAdapter(private val viewModel: MainViewModel, private val bookRe
             holder.bookReviewRowBinding.bookReviewBookTitle.text = bookReview.title
             holder.bookReviewRowBinding.bookReviewAuthor.text = formatAuthors(bookReview.authors)
             holder.bookReviewRowBinding.bookReviewRating.rating = bookReview.rating
-            holder.bookReviewRowBinding.bookReviewUserEmail.text = bookReview.email
+            holder.bookReviewRowBinding.bookReviewUserEmail.text = "Review by ${bookReview.email}"
             bookReview.timeStamp?.let {
                 holder.bookReviewRowBinding.bookReviewTimestamp.text = dateFormat.format(it.toDate())
             }
             holder.bookReviewRowBinding.bookReviewText.text = bookReview.text
+
+            // When the user clicks on a book review from "My Profile", launch the corresponding
+            // BookPage
+            if (bookReviewType == MainViewModel.userBookReviewKey) {
+                holder.bookReviewRowBinding.bookReviewBookTitle.setOnClickListener {
+                    viewModel.openBookPageByVolumeID(bookReview.volumeID, it.context)
+                }
+            }
         }
     }
 

@@ -6,11 +6,15 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface BookApi {
     @GET("/books/v1/volumes?maxResults=40")
     suspend fun getBooksBySearchTerm(@Query("q") searchTerm: String) : BookResponse
+
+    @GET("/books/v1/volumes/{volumeID}")
+    suspend fun getBookByVolumeID(@Path("volumeID") volumeID: String) : BookItem
 
     data class BookResponse(val items: List<BookItem>)
 
