@@ -3,10 +3,13 @@ package com.example.finalproject.ui
 import android.icu.text.DateFormat
 import android.icu.text.SimpleDateFormat
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.finalproject.R
 import com.example.finalproject.databinding.BookReviewRowBinding
 import com.example.finalproject.model.BookReview
 import java.util.*
@@ -69,6 +72,33 @@ class BookReviewAdapter(private val viewModel: MainViewModel, private val bookRe
                 holder.bookReviewRowBinding.bookReviewBookTitle.setOnClickListener {
                     viewModel.openBookPageByVolumeID(bookReview.volumeID, it.context)
                 }
+            }
+
+            // If the book review is written by the current logged-in user, then allow the user
+            // to delete/edit (otherwise don't show the options menu)
+            if (bookReview.email == viewModel.getEmail()) {
+                holder.bookReviewRowBinding.hamburgerBut.setOnClickListener { view ->
+                    val popupMenu = PopupMenu(
+                        view.context,
+                        holder.bookReviewRowBinding.hamburgerBut
+                    )
+                    popupMenu.inflate(R.menu.book_review_menu)
+                    popupMenu.setOnMenuItemClickListener { menuItem ->
+                        val id = menuItem.itemId
+                        if (id == R.id.editOption) {
+                            MainViewModel.openBookReviewEdit(view.context, bookReview)
+                            true
+                        } else if (id == R.id.deleteOption) {
+                            viewModel.deleteBookReview(bookReview)
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    popupMenu.show()
+                }
+            } else {
+                holder.bookReviewRowBinding.hamburgerBut.visibility = View.GONE
             }
         }
     }

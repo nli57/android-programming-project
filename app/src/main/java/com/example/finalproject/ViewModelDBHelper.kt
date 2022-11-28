@@ -90,4 +90,48 @@ class ViewModelDBHelper {
                 Log.w(javaClass.simpleName, "Error ", e)
             }
     }
+
+    fun updateBookReview(
+        bookReview: BookReview,
+        bookReviewList: MutableLiveData<List<BookReview>>,
+        userBookReviewList: MutableLiveData<List<BookReview>>
+    ) {
+        db.collection(collectionRoot)
+            .document(bookReview.firestoreID)
+            .set(bookReview)
+            .addOnSuccessListener {
+                Log.d(
+                    javaClass.simpleName,
+                    "BookReview update \"${ellipsizeString(bookReview.text)}\" id: ${bookReview.firestoreID}"
+                )
+                dbFetchBookReviews(bookReviewList, bookReview.volumeID)
+                dbFetchUserBookReviews(userBookReviewList, bookReview.email)
+            }
+            .addOnFailureListener { e ->
+                Log.d(javaClass.simpleName, "BookReview update FAILED \"${ellipsizeString(bookReview.text)}\"")
+                Log.w(javaClass.simpleName, "Error ", e)
+            }
+    }
+
+    fun deleteBookReview(
+        bookReview: BookReview,
+        bookReviewList: MutableLiveData<List<BookReview>>,
+        userBookReviewList: MutableLiveData<List<BookReview>>
+    ) {
+        db.collection(collectionRoot)
+            .document(bookReview.firestoreID)
+            .delete()
+            .addOnSuccessListener {
+                Log.d(
+                    javaClass.simpleName,
+                    "BookReview delete \"${ellipsizeString(bookReview.text)}\" id: ${bookReview.firestoreID}"
+                )
+                dbFetchBookReviews(bookReviewList, bookReview.volumeID)
+                dbFetchUserBookReviews(userBookReviewList, bookReview.email)
+            }
+            .addOnFailureListener { e ->
+                Log.d(javaClass.simpleName, "BookReview delete FAILED \"${ellipsizeString(bookReview.text)}\"")
+                Log.w(javaClass.simpleName, "Error adding document", e)
+            }
+    }
 }

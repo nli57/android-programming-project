@@ -75,6 +75,14 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun updateBookReview(bookReview: BookReview) {
+        dbHelp.updateBookReview(bookReview, bookReviewList, userBookReviewList)
+    }
+
+    fun deleteBookReview(bookReview: BookReview) {
+        dbHelp.deleteBookReview(bookReview, bookReviewList, userBookReviewList)
+    }
+
     fun observeBookReviews(): LiveData<List<BookReview>> {
         return bookReviewList
     }
@@ -162,6 +170,20 @@ class MainViewModel : ViewModel() {
                 putExtra(BookPage.categoriesKey, bookInfo.categories.toTypedArray())
             }
             context.startActivity(launchBookPageIntent)
+        }
+
+        fun openBookReviewEdit(context: Context, bookReview: BookReview) {
+            val launchBookReviewEditIntent = Intent(context, BookReviewEdit::class.java)
+            launchBookReviewEditIntent.apply {
+                putExtra(BookReviewEdit.textKey, bookReview.text)
+                putExtra(BookReviewEdit.ratingKey, bookReview.rating)
+                putExtra(BookReviewEdit.emailKey, bookReview.email)
+                putExtra(BookReviewEdit.volumeIDKey, bookReview.volumeID)
+                putExtra(BookReviewEdit.titleKey, bookReview.title)
+                putExtra(BookReviewEdit.authorsKey, bookReview.authors.toTypedArray())
+                putExtra(BookReviewEdit.firestoreIDKey, bookReview.firestoreID)
+            }
+            context.startActivity(launchBookReviewEditIntent)
         }
 
         private fun findISBN(bookInfo: BookInfo, type: String): String {

@@ -10,6 +10,13 @@
         android:layout_margin="8dp"
         android:orientation="vertical" >
 
+        <ImageButton
+            android:id="@+id/hamburgerBut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?android:attr/actionOverflowButtonStyle"
+            android:layout_gravity="right"
+            />
         <TextView
             android:id="@+id/bookReviewBookTitle"
             android:layout_width="match_parent"
