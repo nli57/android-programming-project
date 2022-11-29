@@ -44,6 +44,18 @@ class LoginFragment : Fragment() {
         val manager = LinearLayoutManager(this.context)
         binding.userBookReviewRecyclerView.layoutManager = manager
 
+        // Reading lists
+        binding.wantToReadReadingList.setOnClickListener {
+            MainViewModel.openReadingList(it.context, MainViewModel.wantToReadKey)
+        }
+        binding.currentlyReadingReadingList.setOnClickListener {
+            MainViewModel.openReadingList(it.context, MainViewModel.currentlyReadingKey)
+        }
+        binding.haveReadReadingList.setOnClickListener {
+            MainViewModel.openReadingList(it.context, MainViewModel.haveReadKey)
+        }
+
+        // Book reviews
         viewModel.observeUserBookReviews().observe(viewLifecycleOwner) {
             adapter.submitList(it)
         }

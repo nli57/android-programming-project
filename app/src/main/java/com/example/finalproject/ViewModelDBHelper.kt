@@ -3,12 +3,14 @@ package com.example.finalproject
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.example.finalproject.model.BookReview
+import com.example.finalproject.model.ReadingListBook
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
 class ViewModelDBHelper {
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-    private val collectionRoot = "allBookReviews"
+    private val bookReviewCollectionRoot = "allBookReviews"
+    private val readingListCollectionRoot = "allReadingListBooks"
 
     private fun ellipsizeString(string: String) : String {
         if (string.length < 10)
@@ -16,11 +18,12 @@ class ViewModelDBHelper {
         return string.substring(0..9) + "..."
     }
 
+    // BOOK REVIEWS
     private fun dbFetchBookReviews(
         bookReviewList: MutableLiveData<List<BookReview>>,
         volumeID: String
     ) {
-        db.collection(collectionRoot)
+        db.collection(bookReviewCollectionRoot)
             .orderBy("timeStamp", Query.Direction.DESCENDING)
             .whereEqualTo("volumeID", volumeID)
             .limit(100)
@@ -40,7 +43,7 @@ class ViewModelDBHelper {
         userBookReviewList: MutableLiveData<List<BookReview>>,
         email: String
     ) {
-        db.collection(collectionRoot)
+        db.collection(bookReviewCollectionRoot)
             .orderBy("timeStamp", Query.Direction.DESCENDING)
             .whereEqualTo("email", email)
             .limit(100)
@@ -75,7 +78,7 @@ class ViewModelDBHelper {
         bookReviewList: MutableLiveData<List<BookReview>>,
         userBookReviewList: MutableLiveData<List<BookReview>>
     ) {
-        db.collection(collectionRoot)
+        db.collection(bookReviewCollectionRoot)
             .add(bookReview)
             .addOnSuccessListener {
                 Log.d(
@@ -96,7 +99,7 @@ class ViewModelDBHelper {
         bookReviewList: MutableLiveData<List<BookReview>>,
         userBookReviewList: MutableLiveData<List<BookReview>>
     ) {
-        db.collection(collectionRoot)
+        db.collection(bookReviewCollectionRoot)
             .document(bookReview.firestoreID)
             .set(bookReview)
             .addOnSuccessListener {
@@ -118,7 +121,7 @@ class ViewModelDBHelper {
         bookReviewList: MutableLiveData<List<BookReview>>,
         userBookReviewList: MutableLiveData<List<BookReview>>
     ) {
-        db.collection(collectionRoot)
+        db.collection(bookReviewCollectionRoot)
             .document(bookReview.firestoreID)
             .delete()
             .addOnSuccessListener {
@@ -131,7 +134,109 @@ class ViewModelDBHelper {
             }
             .addOnFailureListener { e ->
                 Log.d(javaClass.simpleName, "BookReview delete FAILED \"${ellipsizeString(bookReview.text)}\"")
-                Log.w(javaClass.simpleName, "Error adding document", e)
+                Log.w(javaClass.simpleName, "Error deleting document", e)
             }
+    }
+
+    // READING LISTS
+    private fun dbFetchReadingListBooks(
+        readingListBookList: MutableLiveData<List<ReadingListBook>>,
+        displayListName: String,
+        uid: String
+    ) {
+        db.collection(readingListCollectionRoot)
+            .orderBy("timeStamp")
+            .whereEqualTo("listName", displayListName)
+            .whereEqualTo("uid", uid)
+            .limit(100)
+            .get()
+            .addOnSuccessListener { result ->
+                Log.d(javaClass.simpleName, "allReadingListBooks fetch ${result!!.documents.size}")
+                readingListBookList.postValue(result.documents.mapNotNull {
+                    it.toObject(ReadingListBook::class.java)
+                })
+            }
+            .addOnFailureListener {
+                Log.d(javaClass.simpleName, "allReadingListBooks fetch FAILED ", it)
+            }
+    }
+
+    fun fetchInitialReadingListBooksByListNameAndUID(
+        readingListBookList: MutableLiveData<List<ReadingListBook>>,
+        displayListName: String,
+        uid: String
+    ) {
+        dbFetchReadingListBooks(readingListBookList, displayListName, uid)
+    }
+
+    fun addBookToReadingList(
+        readingListBook: ReadingListBook,
+        readingListBookList: MutableLiveData<List<ReadingListBook>>,
+        displayListName: String
+    ) {
+        db.collection(readingListCollectionRoot)
+            .add(readingListBook)
+            .addOnSuccessListener {
+                Log.d(
+                    javaClass.simpleName,
+                    "ReadingListBook create id: ${readingListBook.firestoreID}"
+                )
+                dbFetchReadingListBooks(
+                    readingListBookList,
+                    displayListName,
+                    readingListBook.uid
+                )
+            }
+            .addOnFailureListener { e ->
+                Log.d(javaClass.simpleName, "ReadingListBook create FAILED id: ${readingListBook.volumeID}")
+                Log.w(javaClass.simpleName, "Error ", e)
+            }
+    }
+
+    fun removeBookFromReadingList(
+        readingListBook: ReadingListBook,
+        readingListBookList: MutableLiveData<List<ReadingListBook>>,
+        displayListName: String
+    ) {
+        db.collection(readingListCollectionRoot)
+            .document(readingListBook.firestoreID)
+            .delete()
+            .addOnSuccessListener {
+                Log.d(
+                    javaClass.simpleName,
+                    "ReadingListBook delete id: ${readingListBook.firestoreID}"
+                )
+                dbFetchReadingListBooks(
+                    readingListBookList,
+                    displayListName,
+                    readingListBook.uid
+                )
+            }
+            .addOnFailureListener { e ->
+                Log.d(
+                    javaClass.simpleName,
+                    "ReadingListBook delete FAILED id: ${readingListBook.volumeID}"
+                )
+                Log.w(javaClass.simpleName, "Error deleting document", e)
+            }
+    }
+
+    fun existsReadingListBook(volumeID: String, listName: String, uid: String) : Boolean {
+        var existsReadingListBook = false
+        db.collection(readingListCollectionRoot)
+            .orderBy("timeStamp")
+            .whereEqualTo("volumeID", volumeID)
+            .whereEqualTo("listName", listName)
+            .whereEqualTo("uid", uid)
+            .limit(100)
+            .get()
+            .addOnSuccessListener { result ->
+                Log.d(javaClass.simpleName, "allReadingListBooks fetch ${result!!.documents.size}")
+                existsReadingListBook = (result!!.documents.size > 0)
+            }
+            .addOnFailureListener {
+                Log.d(javaClass.simpleName, "allReadingListBooks fetch FAILED ", it)
+            }
+        return existsReadingListBook
     }
 }

@@ -38,6 +38,11 @@
             android:parentActivityName=".MainActivity"
             android:label="Edit Book Review" >
         </activity>
+        <activity
+            android:name=".ui.ReadingList"
+            android:parentActivityName=".MainActivity"
+            android:label="Reading List" >
+        </activity>
     </application>
 
 </manifest>

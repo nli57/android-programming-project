@@ -3,9 +3,11 @@ package com.example.finalproject.ui
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.finalproject.R
 import com.example.finalproject.databinding.ActivityBookPageBinding
 import com.example.finalproject.glide.Glide
 import com.google.android.material.snackbar.Snackbar
@@ -27,6 +29,9 @@ class BookPage: AppCompatActivity() {
     }
 
     private val viewModel: MainViewModel by viewModels()
+    private val readingListNames: Array<String> by lazy {
+        resources.getStringArray(R.array.readingLists)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +70,54 @@ class BookPage: AppCompatActivity() {
         binding.bookPagePageCount.text = "Page Count: $pageCount"
         if (categories != null) {
             binding.bookPageCategories.text = formatCategories(categories)
+        }
+
+        // Reading list
+        val readingListTypeAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.readingLists,
+            android.R.layout.simple_spinner_item
+        )
+        readingListTypeAdapter.setDropDownViewResource(
+            android.R.layout.simple_spinner_dropdown_item
+        )
+        binding.readingListSpinner.adapter = readingListTypeAdapter
+
+        binding.readingListSubmitBut.setOnClickListener {
+            var readingListVal : String? = null
+            val readingListPos = binding.readingListSpinner.selectedItemPosition
+            if (readingListPos != 0) {
+                readingListVal = readingListNames[readingListPos]
+            }
+
+            if (!viewModel.getLoginStatus()) {
+                Snackbar.make(
+                    binding.readingListSpinner,
+                    "You must be logged in to add a book to a reading list",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            } else if (readingListVal == null) {
+                Snackbar.make(
+                    binding.readingListSpinner,
+                    "Please select a valid reading list",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            } else {
+                if (viewModel.existsReadingListBook(volumeID!!, readingListVal, viewModel.getUID())) {
+                    Snackbar.make(
+                        binding.readingListSpinner,
+                        "This book already exists in the $readingListVal reading list",
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                } else {
+                    viewModel.addBookToReadingList(volumeID!!, readingListVal)
+                    Snackbar.make(
+                        binding.readingListSpinner,
+                        "This book has been added to the $readingListVal reading list",
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+            }
         }
 
         // Book review

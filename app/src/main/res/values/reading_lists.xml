@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="readingLists">
+        <item>"Add to reading list..."</item>
+        <item>Want To Read</item>
+        <item>Currently Reading</item>
+        <item>Have Read</item>
+    </string-array>
+</resources>

@@ -13,6 +13,7 @@ import com.example.finalproject.api.BookApi
 import com.example.finalproject.api.BookInfo
 import com.example.finalproject.api.Repository
 import com.example.finalproject.model.BookReview
+import com.example.finalproject.model.ReadingListBook
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,9 +24,20 @@ class MainViewModel : ViewModel() {
     private val dbHelp = ViewModelDBHelper()
     private var firebaseAuthLiveData = FirestoreAuthLiveData()
 
-    private val bookListings = MutableLiveData<List<BookInfo>>()
+    private var bookListings = MutableLiveData<List<BookInfo>>()
     private var bookReviewList = MutableLiveData<List<BookReview>>()
     private var userBookReviewList = MutableLiveData<List<BookReview>>()
+    private var readingListBookList = MutableLiveData<List<ReadingListBook>>().apply {
+        value = listOf()
+    }
+    private var readingListBookListings = MediatorLiveData<List<BookInfo>>().apply {
+        addSource(readingListBookList) {
+            getReadingListBookListings(readingListBookList.value!!)
+        }
+    }
+    private var currReadingListName = MutableLiveData<String>().apply {
+        value = wantToReadKey
+    }
     private var loginStatus = MediatorLiveData<Boolean>().apply {
         addSource(firebaseAuthLiveData) {
             value = (it != null)
@@ -43,13 +55,27 @@ class MainViewModel : ViewModel() {
         return bookListings
     }
 
-    // BOOK PAGE
+    // FETCH BOOK BY VOLUME ID
     fun openBookPageByVolumeID(volumeID: String, context: Context) {
         viewModelScope.launch(context = viewModelScope.coroutineContext + Dispatchers.IO) {
             val bookInfo = repository.fetchBookByVolumeID(volumeID)
             if (bookInfo != null) {
                 openBookPage(context, bookInfo)
             }
+        }
+    }
+
+    private fun getReadingListBookListings(readingListBookList: List<ReadingListBook>) {
+        viewModelScope.launch(context = viewModelScope.coroutineContext + Dispatchers.IO) {
+            val bookInfoList = mutableListOf<BookInfo>()
+            for (readingListBook in readingListBookList) {
+                val volumeID = readingListBook.volumeID
+                val bookInfo = repository.fetchBookByVolumeID(volumeID)
+                if (bookInfo != null) {
+                    bookInfoList.add(bookInfo)
+                }
+            }
+            readingListBookListings.postValue(bookInfoList)
         }
     }
 
@@ -92,13 +118,11 @@ class MainViewModel : ViewModel() {
     }
 
     fun getBookReview(position: Int) : BookReview {
-        val bookReview = bookReviewList.value?.get(position)
-        return bookReview!!
+        return bookReviewList.value?.get(position)!!
     }
 
     fun getUserBookReview(position: Int) : BookReview {
-        val userBookReview = userBookReviewList.value?.get(position)
-        return userBookReview!!
+        return userBookReviewList.value?.get(position)!!
     }
 
     fun fetchInitialBookReviewsByVolumeID(volumeID: String) {
@@ -107,6 +131,55 @@ class MainViewModel : ViewModel() {
 
     fun fetchInitialBookReviewsByEmail(email: String) {
         dbHelp.fetchInitialBookReviewsByEmail(userBookReviewList, email)
+    }
+
+    // READING LISTS
+    fun addBookToReadingList(bookVolumeID: String, readingListName: String) {
+        val currUser = firebaseAuthLiveData.getCurrentUser()
+        if (currUser != null) {
+            val readingListBook = ReadingListBook(
+                volumeID = bookVolumeID,
+                listName = readingListName,
+                uid = currUser.uid
+            )
+            dbHelp.addBookToReadingList(
+                readingListBook,
+                readingListBookList,
+                currReadingListName.value!!
+            )
+        }
+    }
+
+    fun removeBookFromReadingList(readingListBook: ReadingListBook) {
+        dbHelp.removeBookFromReadingList(
+            readingListBook,
+            readingListBookList,
+            currReadingListName.value!!
+        )
+    }
+
+    fun getReadingListBook(position: Int) : ReadingListBook {
+        return readingListBookList.value?.get(position)!!
+    }
+
+    fun observeReadingListBookListings(): LiveData<List<BookInfo>> {
+        return readingListBookListings
+    }
+
+    fun fetchInitialReadingListBooksByListNameAndUID(uid: String) {
+        dbHelp.fetchInitialReadingListBooksByListNameAndUID(
+            readingListBookList,
+            currReadingListName.value!!,
+            uid
+        )
+    }
+
+    fun existsReadingListBook(volumeID: String, listName: String, uid: String) : Boolean {
+        return dbHelp.existsReadingListBook(volumeID, listName, uid)
+    }
+
+    fun setCurrReadingListName(listName: String) {
+        currReadingListName.value = listName
     }
 
     // AUTHENTICATION
@@ -140,6 +213,10 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun getUID(): String {
+        return firebaseAuthLiveData.getCurrentUser()?.uid ?: "N/A"
+    }
+
     fun updateUser() {
         firebaseAuthLiveData.updateUser()
     }
@@ -150,8 +227,11 @@ class MainViewModel : ViewModel() {
 
     // MISC
     companion object {
-        val bookReviewKey = "bookReview"
-        val userBookReviewKey = "userBookReview"
+        const val bookReviewKey = "bookReview"
+        const val userBookReviewKey = "userBookReview"
+        const val wantToReadKey = "Want To Read"
+        const val currentlyReadingKey = "Currently Reading"
+        const val haveReadKey = "Have Read"
 
         fun openBookPage(context: Context, bookInfo: BookInfo) {
             val launchBookPageIntent = Intent(context, BookPage::class.java)
@@ -167,7 +247,9 @@ class MainViewModel : ViewModel() {
                 putExtra(BookPage.publisherKey, bookInfo.publisher)
                 putExtra(BookPage.publishedDateKey, bookInfo.publishedDate)
                 putExtra(BookPage.pageCountKey, bookInfo.pageCount)
-                putExtra(BookPage.categoriesKey, bookInfo.categories.toTypedArray())
+                if (categories != null) {
+                    putExtra(BookPage.categoriesKey, bookInfo.categories.toTypedArray())
+                }
             }
             context.startActivity(launchBookPageIntent)
         }
@@ -184,6 +266,14 @@ class MainViewModel : ViewModel() {
                 putExtra(BookReviewEdit.firestoreIDKey, bookReview.firestoreID)
             }
             context.startActivity(launchBookReviewEditIntent)
+        }
+
+        fun openReadingList(context: Context, listName: String) {
+            val launchReadingListIntent = Intent(context, ReadingList::class.java)
+            launchReadingListIntent.apply {
+                putExtra(ReadingList.listNameKey, listName)
+            }
+            context.startActivity(launchReadingListIntent)
         }
 
         private fun findISBN(bookInfo: BookInfo, type: String): String {
