@@ -21,6 +21,9 @@ class ReadingList: AppCompatActivity() {
 
         val listName = intent.extras?.getString(listNameKey)
 
+        // Set toolbar title to the name of the reading list
+        supportActionBar?.title = listName!!
+
         val adapter = BookListingAdapter(viewModel, listName)
         binding.readingListRecyclerView.adapter = adapter
         val manager = LinearLayoutManager(this)
