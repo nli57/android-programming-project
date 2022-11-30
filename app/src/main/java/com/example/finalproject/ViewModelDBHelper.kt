@@ -1,6 +1,7 @@
 package com.example.finalproject
 
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.MutableLiveData
 import com.example.finalproject.model.BookReview
 import com.example.finalproject.model.ReadingListBook
@@ -221,8 +222,17 @@ class ViewModelDBHelper {
             }
     }
 
-    fun existsReadingListBook(volumeID: String, listName: String, uid: String) : Boolean {
-        var existsReadingListBook = false
+    fun updateReadingListBook(
+        volumeID: String,
+        listName: String,
+        uid: String,
+        view: View,
+        updateReadingListBookSuccess: (
+            volumeID: String, listName: String, readingListBook: ReadingListBook?, view: View
+        ) -> Unit,
+        updateReadingListBookFailure: (view: View) -> Unit,
+        readingListBook: ReadingListBook? = null,
+    ) {
         db.collection(readingListCollectionRoot)
             .orderBy("timeStamp")
             .whereEqualTo("volumeID", volumeID)
@@ -232,11 +242,15 @@ class ViewModelDBHelper {
             .get()
             .addOnSuccessListener { result ->
                 Log.d(javaClass.simpleName, "allReadingListBooks fetch ${result!!.documents.size}")
-                existsReadingListBook = (result!!.documents.size > 0)
+                if (result!!.documents.size > 0) {
+                    // Don't update if the book already exists in the specified reading list
+                    updateReadingListBookFailure(view)
+                } else {
+                    updateReadingListBookSuccess(volumeID, listName, readingListBook, view)
+                }
             }
             .addOnFailureListener {
                 Log.d(javaClass.simpleName, "allReadingListBooks fetch FAILED ", it)
             }
-        return existsReadingListBook
     }
 }

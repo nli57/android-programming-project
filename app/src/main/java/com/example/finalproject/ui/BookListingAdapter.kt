@@ -134,22 +134,38 @@ class BookListingAdapter(
         moveToListName: String,
         view: View
     ) {
-        val volumeID = readingListBook.volumeID
-        if (viewModel.existsReadingListBook(volumeID, moveToListName, viewModel.getUID())) {
-            Snackbar.make(
-                view,
-                "This book already exists in the $moveToListName reading list",
-                Snackbar.LENGTH_LONG
-            ).show()
-        } else {
-            viewModel.addBookToReadingList(volumeID, moveToListName)
-            viewModel.removeBookFromReadingList(readingListBook)
-            Snackbar.make(
-                view,
-                "This book has been moved to the $moveToListName reading list",
-                Snackbar.LENGTH_LONG
-            ).show()
-        }
+        viewModel.updateReadingListBook(
+            readingListBook.volumeID,
+            moveToListName,
+            viewModel.getUID(),
+            view,
+            ::updateReadingListBookSuccess,
+            ::updateReadingListBookFailure,
+            readingListBook
+        )
+    }
+
+    private fun updateReadingListBookSuccess(
+        volumeID: String,
+        moveToListName: String,
+        readingListBook: ReadingListBook?,
+        view: View
+    ) {
+        viewModel.addBookToReadingList(volumeID, moveToListName)
+        viewModel.removeBookFromReadingList(readingListBook!!)
+        Snackbar.make(
+            view,
+            "This book has been moved to the new reading list",
+            Snackbar.LENGTH_LONG
+        ).show()
+    }
+
+    private fun updateReadingListBookFailure(view: View) {
+        Snackbar.make(
+            view,
+            "This book cannot be moved because it already exists in that reading list",
+            Snackbar.LENGTH_LONG
+        ).show()
     }
 
     class BookDiff : DiffUtil.ItemCallback<BookInfo>() {

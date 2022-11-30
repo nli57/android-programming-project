@@ -2,6 +2,7 @@ package com.example.finalproject.ui
 
 import android.content.Context
 import android.content.Intent
+import android.view.View
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -150,6 +151,28 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun updateReadingListBook(
+        volumeID: String,
+        listName: String,
+        uid: String,
+        view: View,
+        updateReadingListBookSuccess: (
+            volumeID: String, listName: String, readingListBook: ReadingListBook?, view: View
+        ) -> Unit,
+        updateReadingListBookFailure: (view: View) -> Unit,
+        readingListBook: ReadingListBook? = null
+    ) {
+        dbHelp.updateReadingListBook(
+            volumeID,
+            listName,
+            uid,
+            view,
+            updateReadingListBookSuccess,
+            updateReadingListBookFailure,
+            readingListBook
+        )
+    }
+
     fun removeBookFromReadingList(readingListBook: ReadingListBook) {
         dbHelp.removeBookFromReadingList(
             readingListBook,
@@ -172,10 +195,6 @@ class MainViewModel : ViewModel() {
             currReadingListName.value!!,
             uid
         )
-    }
-
-    fun existsReadingListBook(volumeID: String, listName: String, uid: String) : Boolean {
-        return dbHelp.existsReadingListBook(volumeID, listName, uid)
     }
 
     fun setCurrReadingListName(listName: String) {

@@ -2,6 +2,7 @@ package com.example.finalproject.ui
 
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import androidx.activity.viewModels
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.finalproject.R
 import com.example.finalproject.databinding.ActivityBookPageBinding
 import com.example.finalproject.glide.Glide
+import com.example.finalproject.model.ReadingListBook
 import com.google.android.material.snackbar.Snackbar
 
 class BookPage: AppCompatActivity() {
@@ -103,20 +105,14 @@ class BookPage: AppCompatActivity() {
                     Snackbar.LENGTH_LONG
                 ).show()
             } else {
-                if (viewModel.existsReadingListBook(volumeID!!, readingListVal, viewModel.getUID())) {
-                    Snackbar.make(
-                        binding.readingListSpinner,
-                        "This book already exists in the $readingListVal reading list",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                } else {
-                    viewModel.addBookToReadingList(volumeID!!, readingListVal)
-                    Snackbar.make(
-                        binding.readingListSpinner,
-                        "This book has been added to the $readingListVal reading list",
-                        Snackbar.LENGTH_LONG
-                    ).show()
-                }
+                viewModel.updateReadingListBook(
+                    volumeID!!,
+                    readingListVal,
+                    viewModel.getUID(),
+                    binding.readingListSpinner,
+                    ::updateReadingListBookSuccess,
+                    ::updateReadingListBookFailure
+                )
             }
         }
 
@@ -201,6 +197,28 @@ class BookPage: AppCompatActivity() {
             }
             "Categories: $categoriesStr"
         }
+    }
+
+    private fun updateReadingListBookSuccess(
+        volumeID: String,
+        readingListVal: String,
+        readingListBook: ReadingListBook?,
+        view: View
+    ) {
+        viewModel.addBookToReadingList(volumeID!!, readingListVal)
+        Snackbar.make(
+            view,
+            "This book has been added to the reading list",
+            Snackbar.LENGTH_LONG
+        ).show()
+    }
+
+    private fun updateReadingListBookFailure(view: View) {
+        Snackbar.make(
+            view,
+            "This book cannot be added because it already exists in that reading list",
+            Snackbar.LENGTH_LONG
+        ).show()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
