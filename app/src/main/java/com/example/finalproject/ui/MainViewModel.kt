@@ -134,6 +134,62 @@ class MainViewModel : ViewModel() {
         dbHelp.fetchInitialBookReviewsByEmail(userBookReviewList, email)
     }
 
+    fun sortBookReviews(sortCategory: String, sortDirection: String, bookReviewType: String) {
+        val bookReviews = if (bookReviewType == bookReviewKey) {
+            bookReviewList.value
+        } else {    // userBookReviewKey
+            userBookReviewList.value
+        }
+
+        if (bookReviews != null) {
+            var sortedBookReviews = listOf<BookReview>()
+
+            if (sortDirection == "ASC") {
+                sortedBookReviews = if (sortCategory == "Book Title") {
+                    bookReviews.sortedBy {
+                        it.title
+                    }
+                } else if (sortCategory == "User") {
+                    bookReviews.sortedBy {
+                        it.email
+                    }
+                } else if (sortCategory == "Rating") {
+                    bookReviews.sortedBy {
+                        it.rating
+                    }
+                } else {    // Review Date
+                    bookReviews.sortedBy {
+                        it.timeStamp
+                    }
+                }
+            } else {    // DESC
+                sortedBookReviews = if (sortCategory == "Book Title") {
+                    bookReviews.sortedByDescending {
+                        it.title
+                    }
+                } else if (sortCategory == "User") {
+                    bookReviews.sortedByDescending {
+                        it.email
+                    }
+                } else if (sortCategory == "Rating") {
+                    bookReviews.sortedByDescending {
+                        it.rating
+                    }
+                } else {    // Review Date
+                    bookReviews.sortedByDescending {
+                        it.timeStamp
+                    }
+                }
+            }
+
+            if (bookReviewType == bookReviewKey) {
+                bookReviewList.postValue(sortedBookReviews)
+            } else {    // userBookReviewKey
+                userBookReviewList.postValue(sortedBookReviews)
+            }
+        }
+    }
+
     // READING LISTS
     fun addBookToReadingList(bookVolumeID: String, readingListName: String) {
         val currUser = firebaseAuthLiveData.getCurrentUser()

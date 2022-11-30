@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="userBookReviewsSort">
+        <item>"Sort by..."</item>
+        <item>Book Title</item>
+        <item>Rating</item>
+        <item>Review Date</item>
+    </string-array>
+</resources>

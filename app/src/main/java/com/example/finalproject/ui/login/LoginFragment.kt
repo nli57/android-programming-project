@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -11,6 +12,7 @@ import com.example.finalproject.R
 import com.example.finalproject.databinding.FragmentLoginBinding
 import com.example.finalproject.ui.BookReviewAdapter
 import com.example.finalproject.ui.MainViewModel
+import com.google.android.material.snackbar.Snackbar
 
 class LoginFragment : Fragment() {
     companion object {
@@ -25,6 +27,12 @@ class LoginFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+    private val bookReviewsSortCategories: Array<String> by lazy {
+        resources.getStringArray(R.array.userBookReviewsSort)
+    }
+    private val bookReviewsSortDirections: Array<String> by lazy {
+        resources.getStringArray(R.array.bookReviewsSortDirection)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,11 +76,17 @@ class LoginFragment : Fragment() {
                 binding.bookReviewsArrow.setImageResource(
                     R.drawable.ic_baseline_chevron_right_24
                 )
+                binding.bookReviewsSortSpinner.visibility = View.GONE
+                binding.bookReviewsSortDirectionSpinner.visibility = View.GONE
+                binding.bookReviewsSortSubmitBut.visibility = View.GONE
                 binding.userBookReviewRecyclerView.visibility = View.GONE
             } else {
                 binding.bookReviewsArrow.setImageResource(
                     R.drawable.ic_baseline_keyboard_arrow_down_24
                 )
+                binding.bookReviewsSortSpinner.visibility = View.VISIBLE
+                binding.bookReviewsSortDirectionSpinner.visibility = View.VISIBLE
+                binding.bookReviewsSortSubmitBut.visibility = View.VISIBLE
                 binding.userBookReviewRecyclerView.visibility = View.VISIBLE
             }
         }
@@ -89,6 +103,54 @@ class LoginFragment : Fragment() {
         }
 
         // Book reviews
+        val bookReviewsSortAdapter = ArrayAdapter.createFromResource(
+            view.context,
+            R.array.userBookReviewsSort,
+            android.R.layout.simple_spinner_item
+        )
+        bookReviewsSortAdapter.setDropDownViewResource(
+            android.R.layout.simple_spinner_dropdown_item
+        )
+        binding.bookReviewsSortSpinner.adapter = bookReviewsSortAdapter
+
+        val bookReviewsSortDirectionAdapter = ArrayAdapter.createFromResource(
+            view.context,
+            R.array.bookReviewsSortDirection,
+            android.R.layout.simple_spinner_item
+        )
+        bookReviewsSortDirectionAdapter.setDropDownViewResource(
+            android.R.layout.simple_spinner_dropdown_item
+        )
+        binding.bookReviewsSortDirectionSpinner.adapter = bookReviewsSortDirectionAdapter
+
+        binding.bookReviewsSortSubmitBut.setOnClickListener {
+            var bookReviewsSortVal : String? = null
+            val bookReviewsSortPos = binding.bookReviewsSortSpinner.selectedItemPosition
+            if (bookReviewsSortPos != 0) {
+                bookReviewsSortVal = bookReviewsSortCategories[bookReviewsSortPos]
+            }
+
+            val bookReviewsSortDirectionPos = binding.bookReviewsSortDirectionSpinner
+                .selectedItemPosition
+            val bookReviewsSortDirectionVal = bookReviewsSortDirections[
+                    bookReviewsSortDirectionPos
+            ]
+
+            if (bookReviewsSortVal == null) {
+                Snackbar.make(
+                    binding.bookReviewsSortSpinner,
+                    "Please select a valid category to sort by",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            } else {
+                viewModel.sortBookReviews(
+                    bookReviewsSortVal,
+                    bookReviewsSortDirectionVal,
+                    MainViewModel.userBookReviewKey
+                )
+            }
+        }
+
         viewModel.observeUserBookReviews().observe(viewLifecycleOwner) {
             adapter.submitList(it)
         }

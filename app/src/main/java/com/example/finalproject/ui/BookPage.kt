@@ -34,6 +34,12 @@ class BookPage: AppCompatActivity() {
     private val readingListNames: Array<String> by lazy {
         resources.getStringArray(R.array.readingLists)
     }
+    private val bookReviewsSortCategories: Array<String> by lazy {
+        resources.getStringArray(R.array.bookReviewsSort)
+    }
+    private val bookReviewsSortDirections: Array<String> by lazy {
+        resources.getStringArray(R.array.bookReviewsSortDirection)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -117,6 +123,54 @@ class BookPage: AppCompatActivity() {
         }
 
         // Book review
+        val bookReviewsSortAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.bookReviewsSort,
+            android.R.layout.simple_spinner_item
+        )
+        bookReviewsSortAdapter.setDropDownViewResource(
+            android.R.layout.simple_spinner_dropdown_item
+        )
+        binding.bookReviewsSortSpinner.adapter = bookReviewsSortAdapter
+
+        val bookReviewsSortDirectionAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.bookReviewsSortDirection,
+            android.R.layout.simple_spinner_item
+        )
+        bookReviewsSortDirectionAdapter.setDropDownViewResource(
+            android.R.layout.simple_spinner_dropdown_item
+        )
+        binding.bookReviewsSortDirectionSpinner.adapter = bookReviewsSortDirectionAdapter
+
+        binding.bookReviewsSortSubmitBut.setOnClickListener {
+            var bookReviewsSortVal : String? = null
+            val bookReviewsSortPos = binding.bookReviewsSortSpinner.selectedItemPosition
+            if (bookReviewsSortPos != 0) {
+                bookReviewsSortVal = bookReviewsSortCategories[bookReviewsSortPos]
+            }
+
+            val bookReviewsSortDirectionPos = binding.bookReviewsSortDirectionSpinner
+                .selectedItemPosition
+            val bookReviewsSortDirectionVal = bookReviewsSortDirections[
+                    bookReviewsSortDirectionPos
+            ]
+
+            if (bookReviewsSortVal == null) {
+                Snackbar.make(
+                    binding.bookReviewsSortSpinner,
+                    "Please select a valid category to sort by",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            } else {
+                viewModel.sortBookReviews(
+                    bookReviewsSortVal,
+                    bookReviewsSortDirectionVal,
+                    MainViewModel.bookReviewKey
+                )
+            }
+        }
+
         binding.bookReviewBut.setOnClickListener {
             val bookReviewText = binding.bookReviewET.text.toString()
             val bookReviewRating = binding.userBookReviewRating.rating
